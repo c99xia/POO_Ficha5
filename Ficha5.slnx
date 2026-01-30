@@ -1,0 +1,11 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="Ficha5.md" />
+  </Folder>
+  <Project Path="ex1/ex1.vcxproj" Id="a5f8d204-84d4-4188-b0bc-f985db5d5601" />
+  <Project Path="ex2/ex2.vcxproj" Id="84d31c98-6411-4382-8aeb-152ef0682484" />
+</Solution>
