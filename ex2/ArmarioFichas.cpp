@@ -13,19 +13,20 @@ ArmarioFichas::ArmarioFichas() : numClientes(0), clientes(nullptr) {}
 //   ArmarioFichas a;           // Cria armario 'a'
 //   a.acrescentarClientes(...); // Adiciona clientes em 'a'
 //   ArmarioFichas b(a);        // Cria armario 'b' COPIANDO 'a'
-//   ArmarioFichas c = a;       // Tambem chama o construtor por copia!
+//   ArmarioFichas c = a;       // Tambem chama o construtor por copia! - Cria armario 'c' COPIANDO 'a'
 //
 // Depois da copia, 'a' e 'b' sao INDEPENDENTES:
 //   - Modificar 'a' NAO afeta 'b'
 //   - Destruir 'a' NAO afeta 'b'
 // ============================================================================
 ArmarioFichas::ArmarioFichas(const ArmarioFichas& outra) {
-	// PASSO 1: Copiar o numero de clientes (valor simples)
+	// Copiar o numero de clientes (valor simples)
 	numClientes = outra.numClientes;
 	// 'numClientes' e um int, entao e uma copia simples
 
-	// PASSO 2: Alocar NOVA memoria para o array de ponteiros
-	clientes = new Cliente * [outra.numClientes];
+	// Alocar NOVA memoria para o array de ponteiros
+	clientes = new Cliente * [outra.numClientes]; //ou this->clientes = new Cliente * [outra.numClientes]; é a mesma coisa
+	
 	// 'clientes' (tipo Cliente**) aponta para um NOVO array
 	// Este array tera o MESMO tamanho que o array de 'outra'
 	// MAS e um array DIFERENTE (memoria INDEPENDENTE)
@@ -37,9 +38,9 @@ ArmarioFichas::ArmarioFichas(const ArmarioFichas& outra) {
 	//
 	//   this->clientes -> [   ][   ][   ]  (NOVO array, ainda vazio)
 
-	// PASSO 3: Copiar cada Cliente INDIVIDUALMENTE (deep copy)
+	// Copiar cada Cliente INDIVIDUALMENTE (deep copy)
 	for (int i = 0; i < outra.numClientes; i++) {
-		// Sub-passo 3.1: Criar NOVO objeto Cliente copiando dados
+		// Criar NOVO objeto Cliente copiando dados
 		clientes[i] = new Cliente(
 			outra.clientes[i]->obtemNome(),
 			outra.clientes[i]->obtemNIF()
@@ -51,11 +52,11 @@ ArmarioFichas::ArmarioFichas(const ArmarioFichas& outra) {
 		// Exemplo: Se outra.clientes[0] esta em 0x1000,
 		//          this->clientes[0] estara em 0x2000 (endereco diferente!)
 
-		// Sub-passo 3.2: Copiar o numero de consultas (dado adicional)
+		// Copiar o numero de consultas (dado adicional)
 		for (int j = 0; j < outra.clientes[i]->obtemNumConsultas(); j++) {
 			clientes[i]->novaConsulta();
 			// Como Cliente nao tem um setter para numConsultas,
-			// chamamos novaConsulta() repetidamente para igualar o contador
+			// chamamos novaConsulta() repetidamente para igualar o contador numConsultas
 		}
 	}
 
@@ -92,9 +93,9 @@ ArmarioFichas::ArmarioFichas(const ArmarioFichas& outra) {
 // IMPORTANTE: 'b' tinha dados antigos que precisam ser LIBERTADOS primeiro!
 // ============================================================================
 ArmarioFichas& ArmarioFichas::operator=(const ArmarioFichas& outra) {
-	// PASSO 1: Verificar auto-atribuicao (a = a)
+	// Verificar auto-atribuicao (a = a)
 	if (this == &outra) {
-		// 'this' e um ponteiro para o objeto do LADO ESQUERDO (ex: 'b' em b=a)
+		// 'this' e um ponteiro para o objeto do LADO ESQUERDO, ou seja this guarda o endereço do objeto que está do LADO ESQUERDO (ex: 'b' em b=a)
 		// '&outra' e o endereco do objeto do LADO DIREITO (ex: endereco de 'a' em b=a)
 		// Se os enderecos forem iguais, entao e o MESMO objeto!
 		//
@@ -102,38 +103,38 @@ ArmarioFichas& ArmarioFichas::operator=(const ArmarioFichas& outra) {
 		// Se fizermos: a = a;
 		// Sem esta verificacao, iriamos:
 		//   1) Deletar a memoria de 'a' (Passo 2)
-		//   2) Tentar copiar de 'a' (mas 'a' ja foi deletado!) <- ERRO!
+		//   2) Tentar copiar de 'a' (mas 'a' ja foi eliminado!) <- ERRO!
 		//
 		return *this;  // Retorna o objeto sem fazer nada
 		// '*this' = objeto em si (desreferenciado)
 		// 'this' = ponteiro para o objeto
 	}
 
-	// PASSO 2: Libertar TODOS os objetos Cliente do array atual
+	// Libertar TODOS os objetos Cliente do array atual
 	for (int i = 0; i < numClientes; i++) {
 		delete clientes[i];
-		// 'clientes[i]' e um ponteiro (tipo Cliente*)
-		// 'delete' liberta o OBJETO Cliente apontado
+		// 'clientes[i]' e um ponteiro (tipo Cliente*), que guarda o endereço de um Cliente
+		// 'delete' liberta o OBJETO Cliente apontado, ou seja destruímos o objeto Cliente em [i], ao libertarmos a memória dela
 	}
 	// Visualizacao:
 	//   this->clientes -> [ptr0][ptr1][ptr2]
 	//                       X     X     X
-	//                       ✗     ✗     ✗  (objetos destruidos!)
+	//                       ✗     ✗     ✗  (objetos Cliente destruidos!)
 
-	// PASSO 3: Libertar o ARRAY de ponteiros antigo
+	// Libertar o ARRAY de ponteiros tipo (Cliente*) antigo
 	delete[] clientes;
-	// Liberta apenas o ARRAY em si (os ponteiros)
-	// Os objetos ja foram libertados no Passo 2
+	// Liberta apenas o ARRAY em si (os ponteiros do tipo Cliente*)
+	// Os objetos ja foram libertados em cima
 	//
 	// Visualizacao:
 	//   this->clientes -> [LIBERTADO]  (array antigo destruido)
 
-	// PASSO 4: Copiar o numero de clientes (valor simples)
+	// Copiar o numero de clientes (valor simples)
 	numClientes = outra.numClientes;
 
-	// PASSO 5: Alocar NOVA memoria para o array de ponteiros
+	// Alocar NOVA memoria para o array de ponteiros do tipo Cliente*
 	clientes = new Cliente * [outra.numClientes];
-	// Cria um NOVO array com o tamanho de 'outra'
+	// Cria um NOVO array com o tamanho de 'outra, o objeto da direita'
 	//
 	// Visualizacao:
 	//   outra.clientes -> [ptrA][ptrB][ptrC]  (array de 'outra')
@@ -142,16 +143,16 @@ ArmarioFichas& ArmarioFichas::operator=(const ArmarioFichas& outra) {
 	//
 	//   this->clientes -> [   ][   ][   ]  (NOVO array vazio)
 
-	// PASSO 6: Copiar cada Cliente INDIVIDUALMENTE (deep copy)
+	// Copiar cada Cliente INDIVIDUALMENTE (deep copy)
 	for (int i = 0; i < outra.numClientes; i++) {
-		// Sub-passo 6.1: Criar NOVO objeto Cliente copiando dados
+		// Criar NOVO objeto Cliente copiando dados
 		clientes[i] = new Cliente(
 			outra.clientes[i]->obtemNome(),
 			outra.clientes[i]->obtemNIF()
 		);
 		// Cria NOVO objeto com os mesmos dados
 
-		// Sub-passo 6.2: Copiar numero de consultas
+		// Copiar numero de consultas
 		for (int j = 0; j < outra.clientes[i]->obtemNumConsultas(); j++) {
 			clientes[i]->novaConsulta();
 		}
@@ -166,7 +167,7 @@ ArmarioFichas& ArmarioFichas::operator=(const ArmarioFichas& outra) {
 	//                       ↓     ↓     ↓
 	//                    Cliente0 Cliente1 Cliente2 (novos objetos!)
 
-	// PASSO 7: Retornar *this (para permitir atribuicoes em cadeia)
+	// Retornar *this (para permitir atribuicoes em cadeia)
 	return *this;
 	// Permite: a = b = c;
 	// Execucao: (a = (b = c))
@@ -174,38 +175,38 @@ ArmarioFichas& ArmarioFichas::operator=(const ArmarioFichas& outra) {
 	//   2) Depois:  a = b   (usa o 'b' retornado)
 	//
 	// Por que '*this' e nao 'this'?
-	// - 'this' = ponteiro (tipo ArmarioFichas*)
+	// - 'this' = ponteiro (tipo ArmarioFichas*), ele guarda o endereço do objeto, e não é isso que queremos
 	// - '*this' = objeto em si (tipo ArmarioFichas&)
 	// - O retorno e 'ArmarioFichas&', entao precisamos de '*this'
 }
 
 // Destrutor
 ArmarioFichas::~ArmarioFichas() {
-	// PASSO 1: Liberta cada OBJETO Cliente individualmente
+	// Liberta cada OBJETO Cliente individualmente
 	for (int i = 0; i < numClientes; i++) {
 		delete clientes[i];
 		// 'clientes[i]' e um PONTEIRO para Cliente (tipo Cliente*)
-		// 'delete clientes[i]' liberta a MEMORIA do OBJETO Cliente apontado
+		// 'delete clientes[i]' liberta a MEMORIA do OBJETO Cliente apontado, ou seja liberta a memória alocada para o objeto Cliente na posição [i]
 		// Exemplo: Se clientes[0] aponta para endereco 0x1000,
-		//          delete liberta o objeto Cliente que esta em 0x1000
+		//          delete liberta a memória alocada para o objeto Cliente que esta em 0x1000
 	}
 
-	// PASSO 2: Liberta o ARRAY de ponteiros
+	// Liberta o ARRAY de ponteiros para Cliente (tipo Cliente*)
 	delete[] clientes;
 	// 'clientes' e um PONTEIRO para ponteiro (tipo Cliente**)
-	// Aponta para um ARRAY de ponteiros (cada elemento e do tipo Cliente*)
+	// Aponta para um ARRAY de ponteiros (cada elemento e do tipo Cliente*), ou seja, em cada posição do array guarda o endereço de um objeto Cliente.
 	// 'delete[] clientes' liberta apenas o ARRAY em si, NAO os objetos
-	// (os objetos ja foram libertados no Passo 1)
+	// (os objetos ja foram libertados em cima)
 	//
 	// Visualizacao:
 	// ANTES:
 	//   clientes -> [ptr0][ptr1][ptr2]  <- Array de ponteiros (sera libertado aqui)
 	//                 |     |     |
 	//                 v     v     v
-	//             Cliente Cliente Cliente  <- Objetos (ja libertados no Passo 1)
-	//
+	//             Cliente Cliente Cliente  <- Objetos (ja libertados em cima, dentro do ciclo for)
+	//				  x       x       x 
 	// DEPOIS:
-	//   Toda a memoria foi libertada (sem memory leaks!)
+	//   Toda a memoria alocada foi libertada
 }
 
 bool ArmarioFichas::acrescentarClientes(const std::string& nome, int nif) {
@@ -220,13 +221,13 @@ bool ArmarioFichas::acrescentarClientes(const std::string& nome, int nif) {
 	Cliente** clientesTemp = new Cliente * [numClientes + 1];
 	// 'clientesTemp' e um PONTEIRO para ponteiro (tipo Cliente**)
 	// Aponta para um NOVO array com (numClientes + 1) posicoes
-	// Cada posicao do array e do tipo Cliente* (ponteiro para Cliente)
+	// Cada posicao do array e do tipo Cliente* (ponteiro para Cliente), cada posição [i] guarda o endereço de um objeto Cliente
 	//
 	// Visualizacao:
 	//   clientesTemp -> [   ][   ][   ][   ]  <- Array com 4 posicoes (se era numClientes=3)
 	//                   Cada posicao guardara um Cliente* (ponteiro para Cliente)
 
-	// Copiar PONTEIROS para Cliente do array antigo para o novo array (clientesTemp)
+	// Copiar PONTEIROS para Cliente (Cliente*)/endereço do Cliente do array antigo para o novo array (clientesTemp)
 	for (int i = 0; i < numClientes; i++) {
 		clientesTemp[i] = clientes[i];
 		// NAO estamos a copiar OBJETOS Cliente!
@@ -249,16 +250,36 @@ bool ArmarioFichas::acrescentarClientes(const std::string& nome, int nif) {
 
 	// Libertar o ARRAY de ponteiros para Cliente antigo
 	delete[] clientes;
-	// Liberta apenas o ARRAY em si (os ponteiros dentro dele)
-	// NAO liberta os objetos Cliente! (eles ainda sao necessarios)
-	// Os objetos Cliente continuam a existir porque clientesTemp aponta para eles
+	// O que acontece aqui:
+	// 1) Liberta a MEMORIA do ARRAY em si (os "slots" onde estavam os ponteiros)
+	// 2) Os PONTEIROS (Cliente*) sao destruidos (os enderecos deixam de existir)
+	// 3) MAS os OBJETOS Cliente NAO sao destruidos! Continuam na memoria!
+	//
+	// Por que os objetos continuam a existir?
+	// - Porque 'clientesTemp' AINDA aponta para eles!
+	// - Temos duas variaveis a apontar para os mesmos objetos
+	// - Destruir uma das variaveis NAO destroi os objetos
+	//
+	// Analogia:
+	//   Array 'clientes' = Lista A de moradas
+	//   Array 'clientesTemp' = Lista B de moradas (mesmas moradas!)
+	//   delete[] clientes; → Destroi Lista A
+	//   Mas as casas ainda existem porque Lista B ainda as referencia!
 	//
 	// Visualizacao:
-	//   clientes -> [LIBERTADO] (array antigo foi destruido)
-	//   clientesTemp -> [ptr0][ptr1][ptr2][ptrNovo]  (array novo ainda existe)
-	//                     |     |     |       |
-	//                     v     v     v       v
-	//                 Cliente Cliente Cliente NovoCliente (objetos ainda existem!)
+	//   ANTES:
+	//     clientes -> [ptr0][ptr1][ptr2]  (Lista A)
+	//                   ↓     ↓     ↓
+	//     clientesTemp -> [ptr0][ptr1][ptr2][ptrNovo]  (Lista B)
+	//                   ↓     ↓     ↓       ↓
+	//                 Cliente Cliente Cliente NovoCliente
+	//
+	//   DEPOIS de delete[] clientes:
+	//     clientes -> [DESTRUÍDO]  (Lista A foi destruida)
+	//     
+	//     clientesTemp -> [ptr0][ptr1][ptr2][ptrNovo]  (Lista B ainda existe!)
+	//                       ↓     ↓     ↓       ↓
+	//                   Cliente Cliente Cliente NovoCliente (objetos INTACTOS!)
 
 	// Fazer 'clientes' apontar para o array novo
 	clientes = clientesTemp;
@@ -286,8 +307,8 @@ bool ArmarioFichas::apagarCliente(int nif) {
 			// Libertar a MEMORIA do OBJETO Cliente encontrado
 			delete clientes[i];
 			// 'clientes[i]' e um PONTEIRO para Cliente (tipo Cliente*)
-			// 'delete clientes[i]' liberta o OBJETO Cliente apontado
-			// Exemplo: Se clientes[2] apontava para 0x5000, o objeto em 0x5000 e destruido
+			// 'delete clientes[i]' liberta a memória alocada para o OBJETO Cliente apontado
+			// Exemplo: Se clientes[2] apontava para 0x5000, o objeto em 0x5000 e destruido e a memória alocada libertada
 			//
 			// Visualizacao:
 			//   clientes -> [ptr0][ptr1][ptr2][ptr3]
@@ -296,8 +317,8 @@ bool ArmarioFichas::apagarCliente(int nif) {
 
 			// Preencher o "buraco" com o ULTIMO elemento (swap-and-pop)
 			clientes[i] = clientes[numClientes - 1];
-			// Move o PONTEIRO do ultimo elemento para a posicao do elemento apagado
-			// NAO move o objeto, apenas o PONTEIRO!
+			// Move o PONTEIRO (tipo Cliente*) do ultimo elemento para a posicao do elemento apagado
+			// NAO move o objeto, apenas o PONTEIRO do tipo Cliente*! 
 			// Isto evita deixar "buracos" (nullptr) no meio do array
 			//
 			// Exemplo: Se i=1 e numClientes=4:
@@ -327,7 +348,7 @@ bool ArmarioFichas::apagarCliente(int nif) {
 			//                                    |
 			//                      (fronteira: numClientes=3)
 
-			// Criar ARRAY TEMPORARIO com tamanho REDUZIDO
+			// Criar ARRAY TEMPORARIO com tamanho REDUZIDO por causa do (numClientes--)
 			Cliente** clientesTemp = new Cliente * [numClientes];
 			// 'clientesTemp' e um PONTEIRO para ponteiro (tipo Cliente**)
 			// Aponta para um NOVO array menor: tamanho = numClientes (ja decrementado!)
@@ -341,7 +362,7 @@ bool ArmarioFichas::apagarCliente(int nif) {
 				clientesTemp[j] = clientes[j];
 				// Copia apenas os primeiros 'numClientes' ponteiros
 				// NAO copia o ponteiro duplicado no final!
-				// NAO copia OBJETOS, apenas PONTEIROS (enderecos)
+				// NAO copia OBJETOS, apenas PONTEIROS do tipo Cliente* (que guarda enderecos do objeto Cliente)
 			}
 			// Visualizacao:
 			//   Array ANTIGO:
@@ -356,16 +377,36 @@ bool ArmarioFichas::apagarCliente(int nif) {
 
 			// Libertar o ARRAY de ponteiros antigo
 			delete[] clientes;
-			// Liberta apenas o ARRAY em si (os 4 ponteiros)
-			// NAO liberta os objetos Cliente! (eles ainda sao necessarios)
-			// Os objetos continuam a existir porque clientesTemp aponta para eles
+			// O que acontece aqui:
+			// 1) Liberta a MEMORIA do ARRAY em si (os "slots" onde estavam os ponteiros)
+			// 2) Os PONTEIROS (Cliente*) sao destruidos (os enderecos deixam de existir)
+			// 3) MAS os OBJETOS Cliente NAO sao destruidos! Continuam na memoria!
+			//
+			// Por que os objetos continuam a existir?
+			// - Porque 'clientesTemp' AINDA aponta para eles!
+			// - Temos duas variaveis a apontar para os mesmos objetos
+			// - Destruir uma das variaveis NAO destroi os objetos
+			//
+			// Analogia:
+			//   Array 'clientes' = Lista A de moradas
+			//   Array 'clientesTemp' = Lista B de moradas (mesmas moradas!)
+			//   delete[] clientes; → Destroi Lista A
+			//   Mas as casas ainda existem porque Lista B ainda as referencia!
 			//
 			// Visualizacao:
-			//   clientes -> [LIBERTADO]  (array antigo destruido)
+			//   ANTES:
+			//     clientes -> [ptr0][ptr1][ptr2]  (Lista A)
+			//                   ↓     ↓     ↓
+			//     clientesTemp -> [ptr0][ptr1][ptr2][ptrNovo]  (Lista B)
+			//                   ↓     ↓     ↓       ↓
+			//                 Cliente Cliente Cliente NovoCliente
 			//
-			//   clientesTemp -> [ptr0][ptr3][ptr2]  (array novo ainda existe)
-			//                     ↓     ↓     ↓
-			//                 Cliente Cliente Cliente (objetos ainda existem!)
+			//   DEPOIS de delete[] clientes:
+			//     clientes -> [DESTRUÍDO]  (Lista A foi destruida)
+			//     
+			//     clientesTemp -> [ptr0][ptr1][ptr2][ptrNovo]  (Lista B ainda existe!)
+			//                       ↓     ↓     ↓       ↓
+			//                   Cliente Cliente Cliente NovoCliente (objetos INTACTOS!)
 
 			// Fazer 'clientes' apontar para o array novo
 			clientes = clientesTemp;
@@ -453,10 +494,10 @@ bool ArmarioFichas::registarConsulta(int nif) {
 // OBTER DADOS
 // ============================================================================
 // Procura um cliente pelo NIF e retorna os seus dados (nome e num consultas).
-// Os dados sao retornados numa estrutura InfoCliente.
+// Os dados sao retornados numa classe InfoCliente.
 //
 // Parametros:
-//   - nif: Numero de Identificacao Fiscal do cliente a procurar
+//   - nif
 //
 // Retorno:
 //   - InfoCliente com nome e numConsultas (se cliente encontrado)
@@ -479,9 +520,9 @@ ArmarioFichas::InfoCliente ArmarioFichas::obterDados(int nif) const {
 			return InfoCliente(
 				clientes[i]->obtemNome(),           // Nome do cliente
 				clientes[i]->obtemNumConsultas()    // Numero de consultas
-			);
-			// InfoCliente e uma estrutura (struct) que agrupa nome e numConsultas
-			// Definida dentro da classe ArmarioFichas (nested struct)
+			); // Ele ao retornar está a construir um objeto InfoCliente com os parâmetros daquele clientes[i]
+			// InfoCliente e uma classe que agrupa nome e numConsultas
+			// Definida dentro da classe ArmarioFichas (nested class)
 		}
 	}
 
@@ -508,7 +549,7 @@ ArmarioFichas::InfoCliente ArmarioFichas::obterDados(int nif) const {
 // Deixa o armario no estado INICIAL (vazio), como se tivesse acabado de ser
 // criado pelo construtor default.
 //
-// ATENCAO: Esta operacao e IRREVERSIVEL! Todos os dados sao perdidos.
+// Esta operacao e IRREVERSIVEL! Todos os dados sao perdidos.
 //
 // Exemplo de uso:
 //   ArmarioFichas armario;
@@ -520,10 +561,10 @@ ArmarioFichas::InfoCliente ArmarioFichas::obterDados(int nif) const {
 //   // armario agora esta VAZIO (0 clientes)
 // ============================================================================
 void ArmarioFichas::esvaziar() {
-	// PASSO 1: Libertar cada OBJETO Cliente individualmente
+	// Libertar cada OBJETO Cliente individualmente
 	for (int i = 0; i < numClientes; i++) {
 		delete clientes[i];
-		// Liberta a memoria do objeto Cliente apontado por clientes[i]
+		// Liberta a memoria alocada para o objeto Cliente apontado por clientes[i]
 		// Exemplo: Se clientes[0] aponta para 0x1000, liberta o objeto em 0x1000
 	}
 	// Visualizacao:
@@ -531,15 +572,15 @@ void ArmarioFichas::esvaziar() {
 	//                 X     X     X
 	//                 ✗     ✗     ✗  (objetos destruidos)
 
-	// PASSO 2: Libertar o ARRAY de ponteiros
+	// Libertar o ARRAY de ponteiros
 	delete[] clientes;
-	// Liberta o array em si (os ponteiros)
-	// Os objetos ja foram libertados no Passo 1
+	// Liberta o array em si (os ponteiros do tipo Cliente*) 
+	// Os objetos ja foram libertados em cima
 	//
 	// Visualizacao:
 	//   clientes -> [LIBERTADO]  (array destruido)
 
-	// PASSO 3: Reinicializar para o estado INICIAL (vazio)
+	// Reinicializar para o estado INICIAL (vazio)
 	numClientes = 0;
 	// Contador volta a zero
 
